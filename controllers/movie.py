@@ -3,7 +3,6 @@ from flask import jsonify, make_response
 from ast import literal_eval
 
 from models.movie import Movie
-from models.actor import Actor
 from settings.constants import MOVIE_FIELDS, DATE_FORMAT
 from .parse_request import get_request_data
 
@@ -125,69 +124,3 @@ def delete_movie():
         err = 'No id specified'
         return make_response(jsonify(error=err), 400)
 
-
-def movie_add_relation():
-    """
-    Add actor to movie's cast
-    """
-    data = get_request_data()
-    if 'id' in data.keys():
-        try:
-            row_id = int(data['id'])
-        except:
-            err = 'Id must be integer'
-            return make_response(jsonify(error=err), 400)
-
-        if 'relation_id' in data.keys():
-            try:
-                relation_id = int(data['id'])
-            except:
-                err = 'Relation id must be integer'
-                return make_response(jsonify(error=err), 400)
-
-            rel_obj = Actor.query.filter_by(id=relation_id).first()
-            movie = Movie.add_relation(row_id, rel_obj)
-            try:
-                rel_movie = {k: v for k, v in movie.__dict__.items() if k in MOVIE_FIELDS}
-                rel_movie['cast'] = str(movie.cast)
-            except:
-                err = 'Error while add relation'
-                return make_response(jsonify(error=err), 400)
-
-            return make_response(jsonify(rel_movie), 200)
-
-    else:
-        err = 'No id specified'
-        return make_response(jsonify(error=err), 400)
-
-
-def movie_clear_relations():
-    """
-    Clear all relations by id
-    """
-    data = get_request_data()
-
-    if 'id' in data.keys():
-        try:
-            row_id = int(data['id'])
-        except:
-            err = 'Id must be integer'
-            return make_response(jsonify(error=err), 400)
-
-        movie = Movie.clear_relations(row_id)
-        try:
-            rel_movie = {k: v for k, v in movie.__dict__.items() if k in MOVIE_FIELDS}
-            rel_movie['cast'] = str(movie.cast)
-        except:
-            err = 'Error while clear relation'
-            return make_response(jsonify(error=err), 400)
-
-        return make_response(jsonify(rel_movie), 200)
-
-    else:
-        err = 'No id specified'
-        return make_response(jsonify(error=err), 400)
-
-#
-# def delete_all_movies():
-#     return Movie.delete_all()

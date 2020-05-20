@@ -2,26 +2,27 @@ from datetime import datetime as dt
 
 from core import db
 from .base import Model
-from .relations import association
 
 
 class Movie(Model, db.Model):
-    __tablename__ = 'movies'
+    __tablename__ = 'all_movies'
 
     # id -> integer, primary key
     id = db.Column(db.Integer, primary_key=True)
     # name -> string, size 50, unique, not nullable
-    name = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
     # year -> integer
-    year = db.Column(db.Integer)
+    year = db.Column(db.String(20))
     # genre -> string, size 20
     genre = db.Column(db.String(20))
 
-    # Use `db.relationship` method to define the Movie's relationship with Actor.
-    # Set `backref` as 'filmography', uselist=True
-    # Set `secondary` as 'association'
-    actors = db.relationship('Actor',
-        backref=db.backref('filmography', uselist=True), secondary=association)
+    user_id = db.Column(db.Integer)
+
+    def __init__(self, name, year, genre, user_id):
+        self.name = name
+        self.email = year
+        self.genre = genre
+        self.user_id = user_id
 
     def __repr__(self):
         return '<Movie {}>'.format(self.name)

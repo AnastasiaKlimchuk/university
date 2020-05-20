@@ -1,7 +1,10 @@
-from core import create_app
+from core import create_app, db
 import os
 
+from models.movie import Movie
+
 app = create_app()
+
 
 if __name__ == "__main__":
     app.secret_key = os.urandom(12)
