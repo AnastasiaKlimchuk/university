@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+ 
+ 
+ 
+{% block title %} Home {% endblock %}
+ 
+ 
+ 
+{% block body %}
+ 
+<div class="container">
+    <div class="row">
+        <div class="col md-12">
+ 
+            <div class="jumbotron p-3">
+ 
+                <h2>Manage <b>Movies </b>  <button type="button"  class="btn btn-success float-right"
+                data-toggle="modal" data-target="#mymodal">Add New Movie</button> </h2>
+ 
+ 
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                <span>{{ message }}</span>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+ 
+ 
+                <table class="table table-hover table-dark">
+ 
+                    <tr>
+
+                        <th>Name Movie</th>
+                        <th>Genre</th>
+                        <th>Year</th>
+                        <th>Rate</th>
+                        <th>Review</th>
+                        <th>Action</th>
+
+ 
+                    </tr>
+ 
+ 
+                   {% for row in movies %}
+                    <tr>
+                        <td>{{row.name}}</td>
+                        <td>{{row.genre}}</td>
+                        <td>{{row.year}}</td>
+                        <td>{{row.rating}}</td>
+                        <td>{{row.review}}</td>
+
+                        <td>
+                            <a href="/update_movie/{{row.id}}/{{user_id}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaledit{{row.id}}">Edit</a>
+                            <a href="/delete_movie/{{row.id}}/{{user_id}}" class="btn btn-danger btn-xs" onclick="return confirm('Are You Sure To Delete ?')">Delete</a>
+ 
+ 
+                        </td>
+ 
+                    </tr>
+ 
+ 
+                  <!-- Modal Edit Movie-->
+<div id="modaledit{{row.id}}" class="modal fade" role="dialog">
+   <div class="modal-dialog">
+ 
+ 
+      <div class="modal-content">
+ 
+ 
+         <div class="modal-header">
+ 
+ 
+            <h4 class="modal-title">Update Information</h4>
+ 
+ 
+         </div>
+ 
+ 
+         <div class="modal-body">
+ 
+ 
+            <form action="{{url_for('update_movie', user_id=user_id) }}" method="POST">
+ 
+ 
+               <div class="form-group">
+ 
+ 
+                  <label>Name:</label>
+                   <input type="hidden"  name="id" value="{{row.id}}">
+ 
+                  <input type="text" class="form-control" name="name" value="{{row.name}}">
+ 
+ 
+               </div>
+ 
+ 
+ 
+               <div class="form-group">
+                    <label>Genre:</label>
+
+                    <select class="form-control" name="genre">
+                        <option value="comedy">comedy</option>
+                        <option value="drama">drama</option>
+                        <option value="fantasy" selected>fantasy</option>
+                        <option value="horror">horror</option>
+                        <option value="thriller">thriller</option>
+                    </select>
+
+               </div>
+ 
+ 
+               <div class="form-group">
+ 
+ 
+                  <label>Year:</label>
+ 
+                  <input type="number" placeholder="YYYY" min="1895" max="2020" class="form-control" name="year" value="{{row.year}}">
+ 
+ 
+               </div>
+
+                <div class="form-group">
+                    <label>Rate:</label>
+
+                    <select class="form-control" name="rating">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+
+               </div>
+
+
+                <div class="form-group">
+
+                  <label>Short Review:</label>
+                  <input type="text" class="form-control" name="review" value="{{row.review}}">
+
+
+               </div>
+ 
+ 
+               <div class="form-group">
+ 
+ 
+                  <button class="btn btn-primary" type="submit">Update</button>
+ 
+ 
+               </div>
+ 
+ 
+            </form>
+ 
+ 
+         </div>
+ 
+ 
+         <div class="modal-footer">
+ 
+ 
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+ 
+ 
+         </div>
+ 
+ 
+      </div>
+ 
+ 
+   </div>
+ 
+</div>
+ 
+ 
+                    {% endfor %}
+ 
+ 
+                </table>
+ 
+ 
+            </div>
+ 
+ 
+ 
+                  <!-- Modal Add Movie-->
+ 
+ 
+<div id="mymodal" class="modal fade" role="dialog">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+ 
+            <h4 class="modal-title">Add Movie</h4>
+         </div>
+         <div class="modal-body">
+
+            <form action="{{url_for('insert_movie', user_id=user_id)}}" method="POST">
+
+
+               <div class="form-group">
+
+                  <label>Name:</label>
+                  <input type="text" class="form-control" name="name" required="1">
+
+
+               </div>
+
+
+                <div class="form-group">
+                    <label>Genre:</label>
+
+                    <select class="form-control" name="genre" required="1">
+                        <option value="comedy">comedy</option>
+                        <option value="drama">drama</option>
+                        <option value="fantasy" selected>fantasy</option>
+                        <option value="horror">horror</option>
+                        <option value="thriller">thriller</option>
+                    </select>
+
+               </div>
+
+                <div class="form-group">
+
+
+                  <label>Year:</label>
+
+                  <input type="number" placeholder="YYYY" min="1895" max="2020" class="form-control" name="year">
+
+
+               </div>
+
+                <div class="form-group">
+                    <label>Rate:</label>
+
+                    <select class="form-control" name="rating" required="1">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+
+               </div>
+
+
+                <div class="form-group">
+
+                  <label>Short Review:</label>
+                  <input type="text" class="form-control" name="review">
+
+
+               </div>
+
+
+               <div class="form-group">
+
+
+                  <button class="btn btn-primary" type="submit">Add Movie</button>
+
+
+               </div>
+
+
+            </form>
+
+
+         </div>
+ 
+ 
+         <div class="modal-footer">
+ 
+ 
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+ 
+ 
+         </div>
+ 
+ 
+      </div>
+ 
+ 
+   </div>
+ 
+ 
+</div>
+ 
+ 
+ 
+ 
+ 
+        </div>
+ 
+    </div>
+ 
+ 
+</div>
+ 
+ 
+{% endblock %}
