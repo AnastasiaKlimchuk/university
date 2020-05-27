@@ -1,8 +1,12 @@
 from flask import current_app as app
 from flask import request, Response, render_template, flash, redirect, url_for
+from sqlalchemy import func
+import pandas as pd
+import numpy as np
 
 from controllers.movie import *
 from models.users import *
+from settings.constants import *
 
 
 # Set "homepage" to index.html
@@ -23,11 +27,21 @@ def insert():
         email = request.form['email']
         phone = request.form['phone']
 
+        same_email = Data.query.filter_by(email=email).first()
+        same_phone = Data.query.filter_by(phone=phone).first()
+        if same_email is not None:
+            flash(u"User with such email already exist", "warning")
+            return redirect(url_for('Index'))
+
+        if same_phone is not None:
+            flash(u"User with such phone already exist", "warning")
+            return redirect(url_for('Index'))
+
         my_data = Data(name, email, phone)
         db.session.add(my_data)
         db.session.commit()
 
-        flash("Employee Inserted Successfully")
+        flash("Employee Inserted Successfully", "success")
 
         return redirect(url_for('Index'))
 
@@ -43,7 +57,7 @@ def update():
         my_data.phone = request.form['phone']
 
         db.session.commit()
-        flash("Employee Updated Successfully")
+        flash("Employee Updated Successfully", "success")
 
         return redirect(url_for('Index'))
 
@@ -54,7 +68,7 @@ def delete(id):
     my_data = Data.query.get(id)
     db.session.delete(my_data)
     db.session.commit()
-    flash("Employee Deleted Successfully")
+    flash("Employee Deleted Successfully", "success")
 
     return redirect(url_for('Index'))
 
@@ -74,12 +88,25 @@ def insert_movie(user_id):
         name = request.form['name']
         year = request.form['year']
         genre = request.form['genre']
+        rating = request.form['rating']
+        review = request.form['review']
 
-        my_data = Movie(name, year, genre, user_id)
+        obj = Movie.query.filter_by(user_id=user_id, name=name).first()
+        if obj is not None:
+            flash(u"Movies with this name already exist", "warning")
+
+            return redirect(url_for('get_movies', user_id=user_id))
+
+        if len(review) > 50:
+            flash(f"Too big review, length is {len(review)}, but must be <50", "warning")
+
+            return redirect(url_for('get_movies', user_id=user_id))
+
+        my_data = Movie(name, year, genre, rating, review, user_id)
         db.session.add(my_data)
         db.session.commit()
 
-        flash("Movies Inserted Successfully")
+        flash("Movies Inserted Successfully", "success")
 
         return redirect(url_for('get_movies', user_id=user_id))
 
@@ -90,13 +117,17 @@ def update_movie(user_id):
     if request.method == 'POST':
         my_data = Movie.query.get(request.form.get('id'))
 
+        obj = Movie.query.filter_by(name=my_data.name).first()
+
         my_data.name = request.form['name']
         my_data.year = request.form['year']
         my_data.genre = request.form['genre']
+        my_data.rating = request.form['rating']
+        my_data.review = request.form['review']
         my_data.user_id = user_id
 
         db.session.commit()
-        flash("Movie Updated Successfully")
+        flash("Movie Updated Successfully", "success")
 
         return redirect(url_for('get_movies', user_id=user_id))
 
@@ -107,94 +138,45 @@ def delete_movie(id, user_id):
     my_data = Movie.query.get(id)
     db.session.delete(my_data)
     db.session.commit()
-    flash("Movies Deleted Successfully")
+    flash("Movies Deleted Successfully", "success")
 
     return redirect(url_for('get_movies', user_id=user_id))
-#
-# @app.route('/api/actors', methods=['GET'])
-# def actors():
-#     """
-#     Get all actors in db
-#     """
-#     return get_all_actors()
 
 
-# @app.route('/api/movies', methods=['GET'])
-# def movies():
-#     """
-#     Get all actors in db
-#     """
-#     return get_all_movies()
+labels = [
+    'JAN', 'FEB', 'MAR', 'APR',
+    'MAY', 'JUN', 'JUL', 'AUG',
+    'SEP', 'OCT', 'NOV', 'DEC'
+]
+
+values = [
+    967.67, 1190.89, 1079.75, 1349.19,
+    2328.91, 2504.28, 2873.83, 4764.87,
+    4349.29, 6458.30, 9907, 16297
+]
 
 
-# @app.route('/api/actor', methods=['GET', 'POST', 'PUT', 'DELETE'])
-# def actor():
-#     if request.method == 'GET':
-#         return get_actor_by_id()
-#
-#     elif request.method == 'POST':
-#         return add_actor()
-#
-#     elif request.method == 'PUT':
-#         return update_actor()
-#
-#     elif request.method == 'DELETE':
-#         return delete_actor()
+@app.route('/bar')
+def bar():
+    query = db.select([db.func.avg(Movie.rating).label('avg_rating'), Movie.name]).group_by(Movie.name)
+    my_data = db.engine.execute(query).fetchall()
+    df = pd.DataFrame(my_data)
+    bar_values = np.round(df.loc[:, 0].to_numpy(dtype=float), 2).tolist()
+    bar_labels = df.loc[:, 1].tolist()
+    return render_template('bar_chart.html', title='Raiting', max=6, labels=bar_labels, values=bar_values)
 
 
-# @app.route('/api/movie', methods=['GET', 'POST', 'PUT', 'DELETE'])
-# def movie():
-#     if request.method == 'GET':
-#         return get_movie_by_id()
-#
-#     elif request.method == 'POST':
-#         return add_movie()
-#
-#     elif request.method == 'PUT':
-#         return update_movie()
-#
-#     elif request.method == 'DELETE':
-#         return delete_movie()
+def get_average_rating(self):
+    some = db.select([db.func.avg(Movie.columns.rating).label('avg_rating'), Movie.columns.name]).group_by(Movie.columns.name)
+    print(some)
 
-#
-# @app.route('/api/actor-relations', methods=['PUT', 'DELETE'])
-# def actor_relations():
-#
-#     if request.method == 'PUT':
-#         return actor_add_relation()
-#
-#     elif request.method == 'DELETE':
-#         return actor_clear_relations()
-
-#
-# @app.route('/api/movie-relations', methods=['PUT', 'DELETE'])
-# def movie_relations():
-#
-#     if request.method == 'PUT':
-#         return movie_add_relation()
-#
-#     elif request.method == 'DELETE':
-#         return movie_clear_relations()
+    avg = db.session.query(func.avg(Movie.rating)).scalar()
+    if avg is not None:
+        avg = round(avg, 2)
+    return avg
 
 
-# @app.route("/delete_all_actors")
-# def delete_all_act():
-#     try:
-#         db.session.query(Actor).delete()
-#         db.session.commit()
-#         return Response('All actors was deleted haha', status=201)
-#     except Exception as e:
-#         return(str(e))
-#
-#
-# @app.route("/delete_all_movies")
-# def delete_all_mov():
-#     try:
-#         db.session.query(Movie).delete()
-#         db.session.commit()
-#         return Response('All movies was deleted haha', status=201)
-#     except Exception as e:
-#         return(str(e))
+
 
 
 

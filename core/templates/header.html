@@ -2,7 +2,7 @@
  
  
  
-{% block title %} Flask CRUD {% endblock %}
+{% block title %} Univer CRUD {% endblock %}
  
  
  
@@ -11,7 +11,10 @@
 <div class="jumbotron p-3">
     <div class="well text-center">
  
-        <h1>Something is written </h1>
+        <h1> Critics base </h1>
+        <form action="{{url_for('bar')}}" method="GET">
+            <button type="submit" formaction="/bar" class="btn btn-success btn-xs">View Rating </button>
+
  
     </div>
  

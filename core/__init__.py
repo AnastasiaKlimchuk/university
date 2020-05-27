@@ -1,7 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-
 from settings.constants import DB_URL
 
 
@@ -21,6 +19,8 @@ def create_app():
         from . import routes
 
         # Create tables for our models
+
+        # db.drop_all()
         db.create_all()
 
         return app
